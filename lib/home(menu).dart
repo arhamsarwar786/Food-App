@@ -2,6 +2,7 @@ import 'package:double_back_to_close_app/double_back_to_close_app.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_staggered_grid_view/flutter_staggered_grid_view.dart';
 import 'package:food_home/Setting/settingmain.dart';
+import 'package:hive/hive.dart';
 import 'catorgry_lndngPge.dart';
 import 'constants.dart';
 import 'fav8.dart';
@@ -14,7 +15,11 @@ import 'package:modal_progress_hud/modal_progress_hud.dart';
 
 class Home extends StatefulWidget {
   final keyGet, indexGet;
-  Home([this.keyGet, this.indexGet]);
+  Home([
+    this.keyGet,
+    this.indexGet,
+  ]);
+
   @override
   _HomeState createState() => _HomeState();
 }
@@ -27,6 +32,8 @@ class _HomeState extends State<Home> {
   var ctrgy = "FROZEN", ctrgyIndex = 0, selectedColor = Color(0xffA05446);
   int _selectedIndex = 0;
   List<bool> isSelected;
+
+  String dataInput;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -122,7 +129,15 @@ class _HomeState extends State<Home> {
       },
       key: key,
       suggestions: searchList,
-      itemBuilder: (context, suggestion) => Padding(
+      itemBuilder: (context, suggestion) => suggestion == dataInput ? Padding(
+        child: Container(
+          decoration: BoxDecoration(border: Border.all(color: redTheme)),
+          child: ListTile(
+            title: Text("No Item Found"),
+          ),
+        ),
+        padding: EdgeInsets.all(8.0),
+      ): Padding(
         child: Container(
           decoration: BoxDecoration(border: Border.all(color: redTheme)),
           child: ListTile(
@@ -132,8 +147,9 @@ class _HomeState extends State<Home> {
         padding: EdgeInsets.all(8.0),
       ),
       itemSorter: (a, b) => a.compareTo(b),
-      itemFilter: (suggestion, input) =>
-          suggestion.toLowerCase().startsWith(input.toLowerCase()),
+      itemFilter: (suggestion, input) {
+          dataInput = input;
+        return  suggestion.toLowerCase().startsWith(input.toLowerCase());},
       decoration: InputDecoration(
         hintText: "Search here",
         fillColor: redTheme,
@@ -161,10 +177,20 @@ class _HomeState extends State<Home> {
     });
   }
 
+  List selectedItem = [];
+  List allKeysList = [];
+  var mList = [[], [], [], []];
+  var addToFav = [[], [], [], []];
+  var favBox;
+  var allKeys;
+
   @override
   void initState() {
     // initFun();
     super.initState();
+    favBox = Hive.box("favBox");
+    allKeys = Hive.box("allKeys");
+
     setState(() {
       isSelected = [false, false, false];
       for (var i = 0; i < 3; i++) {
@@ -183,10 +209,58 @@ class _HomeState extends State<Home> {
     });
   }
 
+  // addItemFun(BuildContext context) async {
+  //   var favBox = Hive.box("favBox");
+  //   var allKeys = Hive.box("allKeys");
+  //   for (var i = 0; i < allKeys.length; i++) {
+  //     var res = favBox.get(allKeys.getAt(i));
+  //     myList[0].add(res[0][0]);
+  //     myList[1].add(res[1][0]);
+  //     myList[2].add(res[2][0]);
+  //     myList[3].add(res[3][0]);
+  //   }
+  //   if (allKeys.length == 0) {
+  //     await favBox.put("${widget.name}", [
+  //       [widget.image[0]],
+  //       [widget.name],
+  //       [widget.price],
+  //       [1]
+  //     ]);
+  //     await allKeys.add(widget.name);
+  //     Scaffold.of(context).showSnackBar(
+  //         SnackBar(content: Text("${widget.name} Added into Favorite")));
+  //   } else {
+  //     if (myList[1].contains(widget.name)) {
+  //       Scaffold.of(context)
+  //           .showSnackBar(SnackBar(content: Text("Already Added into Cart")));
+  //     } else {
+  //       if (allKeys.length != 0) {
+  //         await favBox.put("${widget.name}", [
+  //           [widget.image[0]],
+  //           [widget.name],
+  //           [widget.price],
+  //           [1]
+  //         ]);
+  //         await allKeys.add(widget.name);
+  //       }
+  //       Scaffold.of(context).showSnackBar(SnackBar(
+  //           content: Text(
+  //         "${widget.name}",
+  //       )));
+  //     }
+  //   }
+  // }
+
+  bool isFilled = true;
+  toggleMethod() {
+    setState(() {
+      isFilled = !isFilled;
+    });
+  }
+
   bool isSaved = false;
   @override
   Widget build(BuildContext context) {
-
     print(MediaQuery.of(context).size.width);
 
     List myKeys = [];
@@ -484,7 +558,7 @@ class _HomeState extends State<Home> {
                                           "${items[ctrgyIndex][ctrgy][index][0]}",
                                           style: TextStyle(
                                               fontSize: (MediaQuery.of(context)
-                                                          .size 
+                                                          .size
                                                           .width >
                                                       450)
                                                   ? 20.0
@@ -493,19 +567,122 @@ class _HomeState extends State<Home> {
                                               fontWeight: FontWeight.w900),
                                         ),
                                         SizedBox(
-                                          height: 15,
+                                          height: 10,
                                         ),
-                                        Text(
-                                          "Price: ${items[ctrgyIndex][ctrgy][index][1]}",
-                                          style: TextStyle(
-                                              fontSize: (MediaQuery.of(context)
-                                                          .size
-                                                          .width >
-                                                      450)
-                                                  ? 27.0
-                                                  : 17,
+                                        Row(
+                                          children: [
+                                            Text(
+                                              "Price: ${items[ctrgyIndex][ctrgy][index][1]}",
+                                              style: TextStyle(
+                                                  fontSize:
+                                                      (MediaQuery.of(context)
+                                                                  .size
+                                                                  .width >
+                                                              450)
+                                                          ? 27.0
+                                                          : 17,
+                                                  color: redTheme,
+                                                  fontWeight: FontWeight.w900),
+                                            ),
+                                            SizedBox(
+                                              width: 15,
+                                            ),
+                                            IconButton(
+                                              onPressed: () async {
+                                                toggleMethod();
+                                                for (var i = 0;
+                                                    i < allKeys.length;
+                                                    i++) {
+                                                  var res = favBox
+                                                      .get(allKeys.getAt(i));
+                                                  addToFav[0].add(res[0][0]);
+                                                  addToFav[1].add(res[1][0]);
+                                                  addToFav[2].add(res[2][0]);
+                                                  addToFav[3].add(res[3][0]);
+                                                }
+                                                  print("this is AddTOFav $addToFav");
+                                                print("this is the Item Added Keys : ${items[ctrgyIndex][ctrgy][index]}");
+                                                if (allKeys.length == 0) {
+                                                  await favBox.put(
+                                                      "${items[ctrgyIndex][ctrgy][index][0]}",
+                                                      [ 
+                                                        [
+                                                          "${items[ctrgyIndex][ctrgy][index][3][0]}"
+                                                        ],
+                                                        [
+                                                          "${items[ctrgyIndex][ctrgy][index][0]}"
+                                                        ],
+                                                        [
+                                                          "${items[ctrgyIndex][ctrgy][index][1]}"
+                                                        ],
+                                                        [1]
+                                                      ]);
+
+                                                  await allKeys.add(
+                                                      items[ctrgyIndex][ctrgy]
+                                                          [index][0]);
+
+                                                  Scaffold.of(context)
+                                                      .showSnackBar(SnackBar(
+                                                          content: Text(
+                                                              "${items[ctrgyIndex][ctrgy][index][0]}")));
+                                                } else {
+                                                    print("this Item have : $addToFav");
+                                                  if (addToFav[1].contains(
+                                                      items[ctrgyIndex][ctrgy]
+                                                          [index][0])) {
+                                                    favBox.delete(
+                                                        allKeys.getAt(index));
+                                                    allKeys.deleteAt(index);
+                                                    Scaffold.of(context)
+                                                        .showSnackBar(SnackBar(
+                                                            content: Text(
+                                                                "REMOVED into Cart")));
+                                                    print("delete this Item :    $addToFav");
+                                                  } else {
+                                                    if (allKeys.length != 0) {
+                                                      await favBox.put(
+                                                          "${items[ctrgyIndex][ctrgy][index][0]}",
+                                                          [
+                                                            [
+                                                              "${items[ctrgyIndex][ctrgy][index][3][0]}"
+                                                            ],
+                                                            [
+                                                              "${items[ctrgyIndex][ctrgy][index][0]}"
+                                                            ],
+                                                            [
+                                                              "${items[ctrgyIndex][ctrgy][index][1]}"
+                                                            ],
+                                                            [1]
+                                                          ]);
+                                                      await allKeys
+                                                          .add(items[ctrgyIndex]
+                                                                  [ctrgy][index]
+                                                              [0]);
+                                                      Scaffold.of(context)
+                                                          .showSnackBar(
+                                                              SnackBar(
+                                                                  content: Text(
+                                                        "${items[ctrgyIndex][ctrgy][index][0]}",
+                                                      )));
+                                                    }
+                                                  }
+                                                }
+                                                // print(items[ctrgyIndex][ctrgy]);
+                                              },
+
                                               color: redTheme,
-                                              fontWeight: FontWeight.w900),
+                                              icon: isFilled
+                                                  ? Icon(
+                                                      Icons.favorite_outline,
+                                                    )
+                                                  : Icon(
+                                                      Icons.favorite,
+                                                      // size: 40,
+                                                    ),
+                                              // Icon(Icons.favorite_outline),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),

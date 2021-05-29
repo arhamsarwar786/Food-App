@@ -23,9 +23,7 @@ class _PaymentsMethodsState extends State<PaymentsMethods> {
         ),
         backgroundColor: redTheme,
         elevation: 0.0,
-
-        actions: [
-          
+        actions: [     
           Padding(
             padding: const EdgeInsets.all(20.0),
             child: Text("${widget.listGet[1].length}",),

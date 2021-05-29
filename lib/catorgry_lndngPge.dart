@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:food_home/history.dart';
 import 'package:food_home/login.dart';
 import 'package:food_home/signup.dart';
 import 'package:food_home/user_details.dart';
@@ -31,10 +32,10 @@ class _LandingScreenState extends State<LandingScreen> {
     'assets/images/banner3.jpeg',
   ];
 
-  List drw = ['Favorite', 'Add to Cart', 'Setting', 'Contact Us','Share'];
+ List drw = ['Favorite', 'History', 'Setting', 'Contact Us', 'Share'];
   List drawerIcons = [
     Icons.favorite,
-    Icons.shopping_cart,
+    Icons.history,
     Icons.settings,
     Icons.phone,
     Icons.share
@@ -256,7 +257,7 @@ class _LandingScreenState extends State<LandingScreen> {
                               context,
                               PageTransition(
                                 type: PageTransitionType.rightToLeft,
-                                child: AddToCart(),
+                                child: History(),
                               ),
                             );
                           else if (index == 2)
@@ -267,13 +268,12 @@ class _LandingScreenState extends State<LandingScreen> {
                                 child: Setting(),
                               ),
                             );
-                          else if (index == 3){
-                                  _makePhoneCall("tel:+923154031364");
-
+                          else if (index == 3) {
+                            _makePhoneCall("tel:+923154031364");
                           }
-                           if (index == 4)
-                            Share.share("https://play.google.com/store/apps/details?id=com.almadinahfoods.food_app1");
-                         
+                          if (index == 4)
+                            Share.share(
+                                "https://play.google.com/store/apps/details?id=com.almadinahfoods.food_app1");
                         },
                         title: Text(
                           '${drw[index]}',
@@ -286,7 +286,7 @@ class _LandingScreenState extends State<LandingScreen> {
                   ),
                   (fname == "Guest#")
                       ? Container(
-                        margin: EdgeInsets.only(top:5),
+                          margin: EdgeInsets.only(top: 5),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
@@ -343,7 +343,7 @@ class _LandingScreenState extends State<LandingScreen> {
                           ),
                         )
                       : Container(
-                        margin: EdgeInsets.only(top:5),
+                          margin: EdgeInsets.only(top: 5),
                           child: Row(
                             mainAxisAlignment: MainAxisAlignment.start,
                             children: [
@@ -443,7 +443,7 @@ class _LandingScreenState extends State<LandingScreen> {
                       onPressed: () async {
                         var link = WhatsAppUnilink(
                           phoneNumber: "+923154031364",
-                        );    
+                        );
                         await launch('$link');
                       },
                     ),

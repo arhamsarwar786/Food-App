@@ -10,11 +10,11 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:whatsapp_unilink/whatsapp_unilink.dart';
 import 'package:flutter_sms/flutter_sms.dart';
 import 'package:hive/hive.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+// import 'package:shared_preferences/shared_preferences.dart';
 
 class OrderNowButtons extends StatefulWidget {
-  final name, phone, address,email, message, listGet, finalTotal;
-  OrderNowButtons(this.name, this.phone, this.address,this.email, this.message,
+  final name, phone, address, email, message, listGet, finalTotal;
+  OrderNowButtons(this.name, this.phone, this.address, this.email, this.message,
       [this.listGet, this.finalTotal]);
   @override
   _OrderNowButtonsState createState() => _OrderNowButtonsState();
@@ -23,15 +23,49 @@ class OrderNowButtons extends StatefulWidget {
 class _OrderNowButtonsState extends State<OrderNowButtons> {
   var fname, lname, orderNumber;
   String dateTime;
+  List allList = [];
+  var hList = [[], []];
+  var hKeys, hValues;
   //////////  Init State  ////////////////
+
   @override
   void initState() {
     super.initState();
     initFun();
+    hValues = Hive.box("hValues");
+    hKeys = Hive.box("hKeys");
+  }
+
+  addToHis() async {
+    DateTime now = DateTime.now();
+    dateTime = DateFormat('dd-MMMM-yyyy hh:mm a').format(now);
+    // var names = widget.listGet[1].toString();
+    // var price = widget.listGet[2].toString();
+    // var quantity = widget.listGet[3].toString();
+    // var namesAll = names.replaceAll(",", "\n");
+    // var priceAll = price.replaceAll(",", "\n");
+    // var quantityAll = quantity.replaceAll(",", "\n");
+    // dateTime = "1";
+    hKeys.add(dateTime);
+    hValues.put("$dateTime", [
+      widget.name,
+      widget.email,
+      widget.phone.toString(),
+      widget.address,
+      // orderNumber.toString(),
+      dateTime,
+      widget.listGet[1],
+      widget.listGet[2],
+      widget.listGet[3],
+      (widget.finalTotal == null)
+          ? widget.listGet[2][0].toString()
+          : widget.finalTotal.toString()
+    ]);
+    print("$dateTime");
   }
 
   initFun() async {
-    var sharePref = await SharedPreferences.getInstance();
+    // var sharePref = await SharedPreferences.getInstance();
     setState(() {
       Random random = Random();
       orderNumber = random.nextInt(1000);
@@ -62,7 +96,9 @@ class _OrderNowButtonsState extends State<OrderNowButtons> {
         namesAll,
         priceAll,
         quantityAll,
-        (widget.finalTotal == null) ? widget.listGet[2][0].toString() : widget.finalTotal.toString());
+        (widget.finalTotal == null)
+            ? widget.listGet[2][0].toString()
+            : widget.finalTotal.toString());
     final link = WhatsAppUnilink(
       phoneNumber: "+923154031364",
       text:
@@ -77,7 +113,7 @@ class _OrderNowButtonsState extends State<OrderNowButtons> {
 
   ///////////    Order Via Call    ////////////////////
   ///
-  
+
   Future<void> _makePhoneCall(String url) async {
     if (await canLaunch(url)) {
       var names = widget.listGet[1].toString();
@@ -97,7 +133,9 @@ class _OrderNowButtonsState extends State<OrderNowButtons> {
           namesAll,
           priceAll,
           quantityAll,
-          (widget.finalTotal == null) ? widget.listGet[2][0].toString() : widget.finalTotal.toString());
+          (widget.finalTotal == null)
+              ? widget.listGet[2][0].toString()
+              : widget.finalTotal.toString());
       await launch(url);
     } else {
       throw 'Could not launch $url';
@@ -114,8 +152,7 @@ class _OrderNowButtonsState extends State<OrderNowButtons> {
       namesAll, priceAll, quantityAll, finalTotal) {
     FeedbackForm feedbackForm = FeedbackForm(name, email, phoneNumber, address,
         orderNumber, dateTime, namesAll, priceAll, quantityAll, finalTotal);
-    FormController formController = FormController((String response) {
-    });
+    FormController formController = FormController((String response) {});
     formController.submitForm(feedbackForm);
   }
 
@@ -138,7 +175,9 @@ class _OrderNowButtonsState extends State<OrderNowButtons> {
         namesAll,
         priceAll,
         quantityAll,
-        (widget.finalTotal == null) ? widget.listGet[2][0].toString() : widget.finalTotal.toString());
+        (widget.finalTotal == null)
+            ? widget.listGet[2][0].toString()
+            : widget.finalTotal.toString());
 
     var message =
         "***** Al-Madinah Food ***** \n*Thanks for ordering us* \n*Name :* ${widget.name} \n *Address :*  ${widget.address} \n *Order Number :*  $orderNumber \n\n  *....... Item's name: ........*  \n $namesAll  \n\n  *........ Unit Price .........*  \n $priceAll \n\n    *........ Quantities ........*  \n  $quantityAll   \n\n *Total price:*  ${(widget.finalTotal == null) ? widget.listGet[2] : widget.finalTotal}    .....\nYou can pay your bill via cash on delivery or jazzcash/easypaisa us on  03214031364 \ Desi Food Items Can Take 2-3 Hours.";
@@ -221,11 +260,13 @@ class _OrderNowButtonsState extends State<OrderNowButtons> {
                                             onPressed: () {
                                               Navigator.pop(context);
                                               launchWhatsApp();
-                                              Future.delayed(Duration(seconds: 2),
-                                        () {
-                                              disposeFun();
-
-                                        });
+                                              Future.delayed(
+                                                  Duration(seconds: 2), () {
+                                                disposeFun();
+                                                setState(() {
+                                                  addToHis();
+                                                });
+                                              });
                                             },
                                             // hoverColor: Colors.green,
                                             color: Colors.white,
@@ -339,11 +380,10 @@ class _OrderNowButtonsState extends State<OrderNowButtons> {
                                             onPressed: () {
                                               Navigator.pop(context);
                                               _sendSMS();
-                                               Future.delayed(Duration(seconds: 2),
-                                        () {
-                                              disposeFun();
-
-                                        });
+                                              Future.delayed(
+                                                  Duration(seconds: 2), () {
+                                                disposeFun();
+                                              });
                                             },
                                             hoverColor: Colors.green,
                                             color: Colors.white,
@@ -458,11 +498,10 @@ class _OrderNowButtonsState extends State<OrderNowButtons> {
                                               await _makePhoneCall(
                                                   "tel: +923154031364");
 
-                                                  Future.delayed(Duration(seconds: 2),
-                                        () {
-                                              disposeFun();
-
-                                        });
+                                              Future.delayed(
+                                                  Duration(seconds: 2), () {
+                                                disposeFun();
+                                              });
                                             },
                                             hoverColor: Colors.green,
                                             color: Colors.white,
@@ -529,82 +568,74 @@ class _OrderNowButtonsState extends State<OrderNowButtons> {
       ),
     );
   }
- 
 
-  disposeFun(){
-    return     showDialog(
-                        context: context,
-                        builder: (BuildContext context) {
-                          return Dialog(
-                            backgroundColor: redTheme,
+  disposeFun() {
+    return showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return Dialog(
+            backgroundColor: redTheme,
 
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(20.0),
+            ), //this right here
+            child: Container(
+              height: 150,
+              width: 150,
+              child: Padding(
+                padding: const EdgeInsets.all(12.0),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      'Congratulation! Your Order Have Been Placed.',
+                      style: TextStyle(color: Colors.white),
+                      textAlign: TextAlign.center,
+                    ),
+                    SizedBox(
+                      width: 320.0,
+                      height: 20,
+                    ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        // ignore: deprecated_member_use
+                        Padding(
+                          padding: const EdgeInsets.only(left: 10.0),
+                          child: MaterialButton(
                             shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(20.0),
-                            ), //this right here
-                            child: Container(
-                              height: 150,
-                              width: 150,
-                              child: Padding(
-                                padding: const EdgeInsets.all(12.0),
-                                child: Column(
-                                  mainAxisAlignment: MainAxisAlignment.center,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    Text(
-                                      'Congratulation! Your Order Have Been Placed.',
-                                      style: TextStyle(color: Colors.white),
-                                      textAlign: TextAlign.center,
-                                    ),
-                                    SizedBox(
-                                      width: 320.0,
-                                      height: 20,
-                                    ),
-                                    Row(
-                                      mainAxisAlignment:
-                                          MainAxisAlignment.center,
-                                      children: [
-                                        // ignore: deprecated_member_use
-                                        Padding(
-                                          padding:
-                                              const EdgeInsets.only(left: 10.0),
-                                          child: MaterialButton(
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius: BorderRadius.all(
-                                                Radius.circular(20.0),
-                                              ),
-                                            ),
-                                            onPressed: () {
-                                                Navigator.pushAndRemoveUntil(
-                                          context,
-                                          PageTransition(
-                                            type:
-                                                PageTransitionType.rightToLeft,
-                                            child: LandingScreen(),
-
-                                          ),
-                                      (Route<dynamic> route) => false,
-                                        );
-                                            },
-                                            // hoverColor: Colors.green,
-                                            color: Colors.white,
-                                            child: Text(
-                                              "OK",
-                                              style: TextStyle(
-                                                  color: Colors.red,
-                                                  fontSize: 14),
-                                            ),
-                                            minWidth: 60.0,
-                                            height: 35,
-                                          ),
-                                        ),
-                                     
-                                      ],
-                                    ),
-                                  ],
-                                ),
+                              borderRadius: BorderRadius.all(
+                                Radius.circular(20.0),
                               ),
                             ),
-                          );
-                          });
+                            onPressed: () {
+                              Navigator.pushAndRemoveUntil(
+                                context,
+                                PageTransition(
+                                  type: PageTransitionType.rightToLeft,
+                                  child: LandingScreen(),
+                                ),
+                                (Route<dynamic> route) => false,
+                              );
+                            },
+                            // hoverColor: Colors.green,
+                            color: Colors.white,
+                            child: Text(
+                              "OK",
+                              style: TextStyle(color: Colors.red, fontSize: 14),
+                            ),
+                            minWidth: 60.0,
+                            height: 35,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          );
+        });
   }
 }
